@@ -9,6 +9,7 @@ The project is in the Memory Bank initialization phase. All core Memory Bank fil
   - Initialized projectbrief.md: Defined core requirements, goals, and scope.
   - Initialized techContext.md: Listed technologies, dependencies, and development setup.
   - Initialized systemPatterns.md: Described architecture, patterns, and component relationships.
+  - Built and pushed Docker image to ECR for translation app.
 
 - **What's Working**:
   - Memory Bank is fully set up, providing a centralized documentation system for the project.

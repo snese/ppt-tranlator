@@ -1,0 +1,3 @@
+boto3
+python-pptx
+bedrock  # Replace with the actual Bedrock SDK package if needed
