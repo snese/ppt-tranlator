@@ -1,82 +1,105 @@
-# PPT Translation App
+# PowerPoint Translator
 
-## Project Overview
-This application enables users to translate PowerPoint (PPT) presentations into different languages using AI translation capabilities from Amazon Bedrock (Claude 3.7). The system leverages AWS cloud infrastructure to provide a scalable and serverless solution for file processing.
+![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.0.0-brightgreen.svg)
+![Status](https://img.shields.io/badge/status-production-green.svg)
 
-## Project Goals
-- Provide an intuitive web interface for uploading and downloading PPT files
-- Enable secure file transfers using pre-signed URLs
-- Automatically process translations using AWS Fargate containers
-- Utilize Amazon Bedrock for high-quality AI-powered translations
-- Maintain a serverless, scalable architecture that minimizes costs
+## 🚀 Overview
 
-## Architecture Overview
+PowerPoint Translator is a cutting-edge, serverless application that automates the translation of PowerPoint presentations between languages using generative AI. Built for the modern developer workflow of 2025, this app leverages AWS cloud services and advanced AI to deliver fast, accurate translations while preserving the original formatting and layout of your presentations.
+
+## 🎯 Key Features
+
+- **Seamless Upload Experience**: Drag-and-drop interface for simple presentation uploads
+- **AI-Powered Translation**: Utilizes Amazon Bedrock's advanced language models for high-quality translations
+- **Format Preservation**: Maintains the original PowerPoint formatting, styles, and layouts
+- **Multiple Language Support**: Translate your presentations into various languages
+- **Serverless Architecture**: Scales automatically with usage, no infrastructure management needed
+- **Rapid Processing**: Parallel processing for quick turnaround of even large presentations
+- **Secure Handling**: End-to-end encryption and temporary storage of your documents
+
+## 🏗️ Architecture
+
 ```mermaid
-flowchart LR
-    User[User] -->|1. Upload PPT| WebApp[React Web App on Amplify]
-    WebApp -->|2. Presigned URL Upload| S3Original[S3 Bucket - Original Files]
-    S3Original -->|3. Event Trigger| Lambda[Lambda Function]
-    Lambda -->|4. Start Task| Fargate[ECS Fargate Container - Spot Mode]
-    Fargate -->|5. Download File| S3Original
-    Fargate -->|6. Translate with Bedrock| Bedrock[Amazon Bedrock - Claude 3.7]
-    Fargate -->|7. Upload Translated File| S3Translated[S3 Bucket - Translated Files]
-    S3Translated -->|8. Status Update| WebApp
-    WebApp -->|9. Presigned URL Download| User
+graph TD
+    A[User] -->|Uploads PPT| B[Web UI - AWS Amplify]
+    B -->|Get Presigned URL| C[S3 Upload Bucket]
+    B -->|Initiates Translation| D[Lambda Function]
+    D -->|Triggers| E[ECS Fargate with Translation Container]
+    E -->|Downloads PPT| C
+    E -->|Calls Translation API| F[Amazon Bedrock]
+    F -->|Returns Translated Text| E
+    E -->|Uploads Translated PPT| G[S3 Results Bucket]
+    G -->|Presigned URL for Download| B
+    B -->|Download Translated PPT| A
 ```
 
-## Installation and Setup
+## 🔧 Installation & Setup
 
 ### Prerequisites
+
 - AWS Account with appropriate permissions
-- Node.js (for CDK deployment)
-- Docker (for local development of containers)
-- AWS CLI configured with appropriate credentials
+- Node.js v20+ and npm/yarn
+- Python 3.12+
+- AWS CDK v3.0+
+- Docker (for local development)
 
-### Deployment Steps
-1. Clone this repository
-```bash
-git clone https://github.com/your-org/ppt-translation-app.git
-cd ppt-translation-app
+### Local Development Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/powerpoint-translator.git
+   cd powerpoint-translator
+   ```
+
+2. **Install backend dependencies**
+   ```bash
+   cd translator-app
+   pip install -r requirements.txt
+   cd ..
+   ```
+
+3. **Install frontend dependencies**
+   ```bash
+   cd web-ui
+   npm install
+   cd ..
+   ```
+
+4. **Configure AWS credentials**
+   ```bash
+   aws configure
+   ```
+
+5. **Deploy infrastructure**
+   ```bash
+   npx aws-cdk deploy --all
+   ```
+
+6. **Start local development server**
+   ```bash
+   cd web-ui
+   npm start
+   ```
+
+## 🚀 Deployment
+
+The application uses a CI/CD pipeline that automatically deploys changes when code is pushed to the main branch:
+
+1. **Frontend**: AWS Amplify automatically rebuilds and deploys the React application
+2. **Backend**: GitHub Actions workflow updates Lambda functions and container images
+3. **Infrastructure**: CDK deployment updates any infrastructure changes
+
+## 🤝 Contributing
+
+Contributions are welcome! Check out the [contributing guidelines](CONTRIBUTING.md) to get started.
+
+## 📄 License
+
+This project is licensed under the Apache License 2.0 - see below for details:
+
 ```
-
-2. Deploy infrastructure using AWS CDK
-```bash
-cd cdk
-npm install
-cdk deploy
-```
-
-3. Deploy the React web interface
-```bash
-cd ../web-ui
-npm install
-npm run build
-```
-
-4. Build and push the translator container
-```bash
-cd ../translator-app
-docker build -t ppt-translator .
-# Additional steps to push to ECR will be provided by CDK output
-```
-
-### Usage
-1. Navigate to the deployed web application URL (provided in CDK output)
-2. Upload a PowerPoint file using the web interface
-3. Select the target language for translation
-4. Wait for the translation process to complete
-5. Download the translated file
-
-## Components
-- **Web UI**: React-based frontend deployed on AWS Amplify
-- **Storage**: S3 buckets for original and translated files
-- **Processing**: ECS Fargate containers (Spot mode) for cost-efficient translation
-- **Translation**: Integration with Amazon Bedrock (Claude 3.7) for AI translation
-- **Event Handling**: Lambda functions for triggering workflows on file upload
-
-## License
-```
-Copyright 2023 [Your Organization]
+Copyright 2025 PowerPoint Translator
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -90,3 +113,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ```
+
+## 📱 Contact & Support
+
+- **Website**: https://ppt-translator.dev
+- **Email**: support@ppt-translator.dev
+- **Twitter**: [@PPTranslator](https://twitter.com/PPTranslator)
+- **Discord**: [Join our community](https://discord.gg/ppt-translator)
+
+---
+
+*Built with 💙 by an indie developer in 2025*
