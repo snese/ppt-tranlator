@@ -168,6 +168,15 @@ def handle_health_check(event, cors_headers, logger=None):
             lambda_status['accessible'] = True
         except Exception as e:
             logger.error(f"Error checking translation Lambda: {e}")
+            # Try with region specified explicitly
+            try:
+                lambda_client = boto3.client('lambda', region_name='us-west-2')
+                lambda_client.get_function(FunctionName=translation_lambda_name)
+                lambda_status['exists'] = True
+                lambda_status['accessible'] = True
+                logger.info(f"Successfully found Lambda in us-west-2 region: {translation_lambda_name}")
+            except Exception as region_e:
+                logger.error(f"Error checking translation Lambda in us-west-2 region: {region_e}")
         
         # Determine overall health status
         is_healthy = (
