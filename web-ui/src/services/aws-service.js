@@ -24,7 +24,8 @@ export const ApiService = {
       method,
       headers: {
         'Content-Type': 'application/json',
-        'X-Request-ID': requestId
+        // Temporarily remove X-Request-ID header until backend is updated
+        // 'X-Request-ID': requestId
       },
       mode: 'cors',
       credentials: 'omit' // Changed from 'include' to 'omit' to work with wildcard CORS

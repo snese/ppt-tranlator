@@ -46,6 +46,15 @@ def handle_debug_request(event, cors_headers, logger=None):
     """Handle debug information requests"""
     if logger is None:
         logger = setup_logger('debug_handler')
+    
+    # Handle OPTIONS request for CORS preflight
+    if event.get('httpMethod') == 'OPTIONS':
+        logger.info("Handling OPTIONS preflight request for debug endpoint")
+        return {
+            'statusCode': 200,
+            'headers': cors_headers,
+            'body': ''
+        }
         
     try:
         # Get query parameters
@@ -99,6 +108,15 @@ def handle_health_check(event, cors_headers, logger=None):
     """Handle health check requests"""
     if logger is None:
         logger = setup_logger('health_check')
+    
+    # Handle OPTIONS request for CORS preflight
+    if event.get('httpMethod') == 'OPTIONS':
+        logger.info("Handling OPTIONS preflight request for health endpoint")
+        return {
+            'statusCode': 200,
+            'headers': cors_headers,
+            'body': ''
+        }
         
     try:
         # Check S3 buckets
