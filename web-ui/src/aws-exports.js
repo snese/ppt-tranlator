@@ -1,21 +1,15 @@
-/*
- * AWS configuration for the PowerPoint Translator app.
- * These values are automatically updated by the deploy-and-update.sh script
- * from the deployed AWS infrastructure.
- */
-
+// AWS configuration for the web application
 const awsConfig = {
-  region: 'us-west-2', // Confirmed as correct
+  // API Gateway configuration
   apiGateway: {
-    endpoint: 'REPLACE_THIS', // Updated with deployed API Gateway endpoint
-    region: 'us-west-2' // Confirmed as correct
+    endpoint: 'https://vrxgq5llsh.execute-api.us-west-2.amazonaws.com/prod',
+    region: 'us-west-2'
   },
+  // S3 bucket configuration
   s3: {
-    originalBucket: 'REPLACE_THIS', // Updated with correct bucket name
-    translatedBucket: 'REPLACE_THIS' // Updated with correct bucket name
-  },
-  cloudfront: {
-    domain: 'REPLACE_THIS' // Updated with CloudFront distribution domain
+    originalBucket: 'ppt-translation-original',
+    translatedBucket: 'ppt-translation-translated',
+    region: 'us-west-2'
   }
 };
 

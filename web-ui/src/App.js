@@ -47,17 +47,22 @@ function App() {
       setCurrentStep('translating');
       setErrorMessage(null);
       
+      console.log(`[${new Date().toISOString()}] Starting translation for file: ${uploadedFileKey}`);
+      
       // Request translation from service
-      const jobId = await TranslationService.requestTranslation(
+      const response = await TranslationService.requestTranslation(
         uploadedFileKey,
         sourceLanguage,
         targetLanguage
       );
       
+      console.log(`[${new Date().toISOString()}] Translation request successful, job ID: ${response}`);
+      
       // Set job ID to trigger progress tracking
-      setTranslationJobId(jobId);
+      setTranslationJobId(response);
       
     } catch (error) {
+      console.error(`[${new Date().toISOString()}] Translation request failed:`, error);
       setErrorMessage(`Failed to start translation: ${error.message}`);
       setCurrentStep('uploaded'); // Reset to upload state
     }

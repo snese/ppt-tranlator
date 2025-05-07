@@ -100,8 +100,14 @@ def handle_translate_request(event, cors_headers):
             # Get the original bucket name from environment variable or use a default
             original_bucket = os.environ.get('ORIGINAL_BUCKET', 'ppt-translation-original')
             
-            # Get the TranslationLambda function name from environment variable or use a default
-            translation_lambda_name = os.environ.get('TRANSLATION_LAMBDA_NAME', 'CdkStack-TranslationProcessorLambda')
+            # Get the TranslationLambda function name from environment variable
+            translation_lambda_name = os.environ.get('TRANSLATION_LAMBDA_NAME', '')
+            
+            # If no name provided, try to use a standard naming convention
+            if not translation_lambda_name:
+                translation_lambda_name = 'CdkStack-TranslationProcessorLambda07AC52D8'
+                
+            logger.info(f"Using translation lambda name: {translation_lambda_name}")
             
             # If the name doesn't include the full ARN, try to construct it
             if ':function:' not in translation_lambda_name:
@@ -138,13 +144,35 @@ def handle_translate_request(event, cors_headers):
             logger.info(f"Invoking Lambda {translation_lambda_arn} with event: {json.dumps(s3_event)}")
             
             # Invoke the main translation Lambda function asynchronously
-            response = lambda_client.invoke(
-                FunctionName=translation_lambda_arn,
-                InvocationType='Event',  # Asynchronous invocation
-                Payload=json.dumps(s3_event)
-            )
-            
-            logger.info(f"Successfully triggered translation Lambda for job {job_id}, response: {response}")
+            try:
+                response = lambda_client.invoke(
+                    FunctionName=translation_lambda_arn,
+                    InvocationType='Event',  # Asynchronous invocation
+                    Payload=json.dumps(s3_event)
+                )
+                
+                logger.info(f"Successfully triggered translation Lambda for job {job_id}, response: {response}")
+                
+                # Return the job ID to the client
+                return {
+                    'statusCode': 200,
+                    'headers': cors_headers,
+                    'body': json.dumps({
+                        'jobId': job_id,
+                        'status': 'processing',
+                        'message': f'Translation job {job_id} started for file {file_key}'
+                    })
+                }
+            except Exception as e:
+                logger.error(f"Error invoking Lambda: {e}")
+                logger.error(f"Exception traceback: {traceback.format_exc()}")
+                return {
+                    'statusCode': 500,
+                    'headers': cors_headers,
+                    'body': json.dumps({
+                        'error': f'Failed to start translation job: {str(e)}'
+                    })
+                }
         except Exception as e:
             logger.error(f"Error triggering translation Lambda: {e}")
             logger.error(f"Exception traceback: {traceback.format_exc()}")

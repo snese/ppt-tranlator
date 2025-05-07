@@ -157,14 +157,25 @@ export const TranslationService = {
   // Request translation of a file via API Gateway
   async requestTranslation(fileKey, sourceLanguage, targetLanguage) {
     try {
+      console.log(`[${new Date().toISOString()}] Requesting translation for file: ${fileKey}`);
+      console.log(`[${new Date().toISOString()}] Source language: ${sourceLanguage}, Target language: ${targetLanguage}`);
+      
       const data = await ApiService.makeRequest('/translate', 'POST', {
         fileKey,
         sourceLanguage,
         targetLanguage
       });
+      
+      console.log(`[${new Date().toISOString()}] Translation request response:`, data);
+      
+      if (!data.jobId) {
+        console.error(`[${new Date().toISOString()}] No jobId returned from translation request`);
+        throw new Error('No job ID returned from translation service');
+      }
+      
       return data.jobId;
     } catch (error) {
-      console.error('Error requesting translation:', error);
+      console.error(`[${new Date().toISOString()}] Error requesting translation:`, error);
       throw error;
     }
   },
