@@ -28,7 +28,7 @@ def lambda_handler(event, context):
     
     # Common CORS headers for all responses
     cors_headers = {
-        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Origin': '*',  # Allow all origins for now, will be restricted in production
         'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Requested-With',
         'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
         'Access-Control-Allow-Credentials': 'true',
@@ -37,6 +37,7 @@ def lambda_handler(event, context):
     
     # Handle OPTIONS request for CORS preflight
     if event.get('httpMethod') == 'OPTIONS':
+        logger.info("Handling OPTIONS preflight request")
         return {
             'statusCode': 200,
             'headers': cors_headers,
@@ -48,11 +49,13 @@ def lambda_handler(event, context):
         path = event.get('path', '')
         method = event.get('httpMethod', '')
         
-        if path.endswith('/translate') and method == 'POST':
+        logger.info(f"Processing request: {method} {path}")
+        
+        if '/translate' in path and method == 'POST':
             return handle_translate_request(event, cors_headers)
-        elif path.endswith('/status') and method == 'GET':
+        elif '/status' in path and method == 'GET':
             return handle_status_request(event, cors_headers)
-        elif path.endswith('/result') and method == 'GET':
+        elif '/result' in path and method == 'GET':
             return handle_result_request(event, cors_headers)
         else:
             return {

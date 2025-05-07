@@ -12,13 +12,16 @@ export const ApiService = {
   
   // Make a request to the API
   async makeRequest(endpoint, method = 'GET', body = null) {
+    // Ensure endpoint doesn't start with a slash to avoid double slashes
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
+    
     const options = {
       method,
       headers: {
         'Content-Type': 'application/json',
       },
       mode: 'cors',
-      credentials: 'same-origin'
+      credentials: 'include' // Changed from 'same-origin' to 'include' for CORS
     };
     
     if (body) {
@@ -27,11 +30,17 @@ export const ApiService = {
     
     try {
       // Log the full URL and request body before making the request
-      console.log(`[${new Date().toISOString()}] Making ${method} request to: ${this.baseUrl}${endpoint}`);
+      console.log(`[${new Date().toISOString()}] Making ${method} request to: ${this.baseUrl}/${cleanEndpoint}`);
       if (body) {
         console.log(`[${new Date().toISOString()}] Request body:`, JSON.stringify(body));
       }
-      const response = await fetch(`${this.baseUrl}${endpoint}`, options);
+      
+      // Construct the URL properly to avoid double slashes
+      const url = `${this.baseUrl}/${cleanEndpoint}`;
+      console.log(`[${new Date().toISOString()}] Final request URL: ${url}`);
+      
+      const response = await fetch(url, options);
+      
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`API request failed with status ${response.status}: ${errorText}`);
