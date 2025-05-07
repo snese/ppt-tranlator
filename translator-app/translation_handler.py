@@ -449,7 +449,10 @@ def lambda_handler(event, context):
             local_input_file_path = '/tmp/input.pptx'
             local_output_file_path = '/tmp/output.pptx'
             translated_file_key = f"translated/{key.split('/')[-1]}"
-            translated_bucket_name = bucket  # Use the same bucket for output, or configure a different one if needed
+            translated_bucket_name = os.environ.get('TRANSLATED_BUCKET', bucket)  # Get translated bucket from env var
+            
+            logger.info(f"Starting translation process for {bucket}/{key}")
+            logger.info(f"Output will be saved to {translated_bucket_name}/{translated_file_key}")
             
             translator = BedrockTranslator()
             if translator.download_from_s3(bucket, key, local_input_file_path):

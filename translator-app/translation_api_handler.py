@@ -101,7 +101,7 @@ def handle_translate_request(event, cors_headers):
             original_bucket = os.environ.get('ORIGINAL_BUCKET', 'ppt-translation-original')
             
             # Get the TranslationLambda function name from environment variable or use a default
-            translation_lambda_name = os.environ.get('TRANSLATION_LAMBDA_NAME', 'CdkStack-TranslationLambda548002C8')
+            translation_lambda_name = os.environ.get('TRANSLATION_LAMBDA_NAME', 'CdkStack-TranslationProcessorLambda')
             
             # If the name doesn't include the full ARN, try to construct it
             if ':function:' not in translation_lambda_name:
