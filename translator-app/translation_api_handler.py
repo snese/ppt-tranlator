@@ -103,9 +103,16 @@ def handle_translate_request(event, cors_headers):
             # Get the TranslationLambda function name from environment variable
             translation_lambda_name = os.environ.get('TRANSLATION_LAMBDA_NAME', '')
             
-            # If no name provided, try to use a standard naming convention
+            # If no name provided, fail with a clear error
             if not translation_lambda_name:
-                translation_lambda_name = 'CdkStack-TranslationProcessorLambda07AC52D8'
+                logger.error("TRANSLATION_LAMBDA_NAME environment variable not set")
+                return {
+                    'statusCode': 500,
+                    'headers': cors_headers,
+                    'body': json.dumps({
+                        'error': 'Translation Lambda name not configured'
+                    })
+                }
                 
             logger.info(f"Using translation lambda name: {translation_lambda_name}")
             
@@ -151,7 +158,43 @@ def handle_translate_request(event, cors_headers):
                     Payload=json.dumps(s3_event)
                 )
                 
-                logger.info(f"Successfully triggered translation Lambda for job {job_id}, response: {response}")
+                logger.info(f"Successfully triggered translation Lambda for job {job_id}, response status code: {response['StatusCode']}")
+                
+                # Return the job ID to the client
+                return {
+                    'statusCode': 200,
+                    'headers': cors_headers,
+                    'body': json.dumps({
+                        'jobId': job_id,
+                        'status': 'processing',
+                        'message': f'Translation job {job_id} started for file {file_key}'
+                    })
+                }
+            except Exception as e:
+                logger.error(f"Error invoking Lambda: {e}")
+                logger.error(f"Exception traceback: {traceback.format_exc()}")
+                return {
+                    'statusCode': 500,
+                    'headers': cors_headers,
+                    'body': json.dumps({
+                        'error': f'Failed to start translation job: {str(e)}'
+                    })
+                }
+                                logger.info(f"Found matching function: {actual_function_name}")
+                                
+                                response = lambda_client.invoke(
+                                    FunctionName=actual_function_name,
+                                    InvocationType='Event',
+                                    Payload=json.dumps(s3_event)
+                                )
+                                logger.info(f"Successfully triggered translation Lambda with name {actual_function_name}")
+                            else:
+                                raise Exception(f"No matching Lambda functions found for {base_name}")
+                        except Exception as inner_e:
+                            logger.error(f"Error in fallback Lambda invocation: {inner_e}")
+                            raise inner_e
+                    else:
+                        raise e
                 
                 # Return the job ID to the client
                 return {
