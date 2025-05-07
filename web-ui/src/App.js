@@ -22,7 +22,7 @@ function App() {
   
   // App states
   const [currentStep, setCurrentStep] = useState('upload'); // upload, translating, complete
-  
+
   // Function to handle file upload completion
   const handleFileUploaded = (fileKey, filename) => {
     setUploadedFileKey(fileKey);
@@ -114,7 +114,7 @@ function App() {
           </div>
         )}
         
-        {/* File upload section - always visible */}
+        {/* File upload section */}
         <section className={`section ${currentStep !== 'upload' ? 'collapsed' : ''}`}>
           <FileUpload
             onFileUploaded={handleFileUploaded}
