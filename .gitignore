@@ -69,10 +69,8 @@ htmlcov/
 
 # Deployment artifacts
 .aws-sam/
-example/MAM001_zh-TW_20250507_015757.pptx
-example/MAM001_zh-TW_20250507_021706.pptx
-example/MAM001.pptx
-example/sample1.md
-example/sample2.md
-example/sample3.md
+example/*
 AmazonQ.md
+translator-app/translator-app.zip
+translator-app/deploy.log
+deploy.log
