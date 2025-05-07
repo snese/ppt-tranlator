@@ -21,7 +21,7 @@ export const ApiService = {
         'Content-Type': 'application/json',
       },
       mode: 'cors',
-      credentials: 'include' // Changed from 'same-origin' to 'include' for CORS
+      credentials: 'omit' // Changed from 'include' to 'omit' to work with wildcard CORS
     };
     
     if (body) {
