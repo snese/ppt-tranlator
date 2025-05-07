@@ -18,7 +18,7 @@ function App() {
   
   // Language states
   const [sourceLanguage, setSourceLanguage] = useState('en');
-  const [targetLanguage, setTargetLanguage] = useState('es');
+  const targetLanguage = 'zh-TW'; // Fixed target language to Traditional Chinese (Taiwan)
   
   // App states
   const [currentStep, setCurrentStep] = useState('upload'); // upload, translating, complete
@@ -132,8 +132,9 @@ function App() {
               sourceLanguage={sourceLanguage}
               targetLanguage={targetLanguage}
               onSourceLanguageChange={setSourceLanguage}
-              onTargetLanguageChange={setTargetLanguage}
+              onTargetLanguageChange={() => {}} // Disabled for fixed target language
             />
+            <p className="language-note">Translations are fixed to Traditional Chinese (Taiwan) as per service specification.</p>
             
             <div className="action-buttons">
               <button 

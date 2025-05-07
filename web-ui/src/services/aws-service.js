@@ -81,72 +81,61 @@ export const S3Service = {
 
 // Translation status service
 export const TranslationService = {
-  // Poll for translation status
+  // Poll for translation status via API Gateway
   checkTranslationStatus: async (fileKey) => {
-    // This would typically be an API call to your backend service
-    // that checks the status of the translation job
-    
-    // For demonstration, we'll simulate a status check
-    // In a real application, you would call your API Gateway endpoint
     try {
-      // Simulating API call
-      // const response = await fetch(`your-api-gateway-url/status?fileKey=${fileKey}`);
-      // const data = await response.json();
-      // return data.status;
-      
-      // For now, simulate a random status
-      const statuses = ['pending', 'processing', 'completed', 'failed'];
-      const randomIndex = Math.floor(Math.random() * 3); // Bias toward success for demo
-      return statuses[randomIndex];
+      // Call API Gateway endpoint for status check
+      const apiGatewayUrl = process.env.REACT_APP_API_GATEWAY_URL || 'https://your-api-gateway-url.execute-api.us-east-1.amazonaws.com/prod';
+      const response = await fetch(`${apiGatewayUrl}/status?fileKey=${encodeURIComponent(fileKey)}`);
+      if (!response.ok) {
+        throw new Error(`Status check failed with status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data.status;
     } catch (error) {
       console.error('Error checking translation status:', error);
       throw error;
     }
   },
   
-  // Request translation of a file
+  // Request translation of a file via API Gateway
   requestTranslation: async (fileKey, sourceLanguage, targetLanguage) => {
-    // This would typically be an API call to your backend service
-    // that initiates the translation job
-    
-    // For demonstration, we'll simulate a request
     try {
-      // Simulating API call to Lambda function via API Gateway
-      // const response = await fetch('your-api-gateway-url/translate', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json'
-      //   },
-      //   body: JSON.stringify({
-      //     fileKey,
-      //     sourceLanguage,
-      //     targetLanguage
-      //   })
-      // });
-      // const data = await response.json();
-      // return data.jobId;
-      
-      // For now, return the fileKey as the jobId
-      return fileKey;
+      // Call API Gateway endpoint to initiate translation
+      const apiGatewayUrl = process.env.REACT_APP_API_GATEWAY_URL || 'https://your-api-gateway-url.execute-api.us-east-1.amazonaws.com/prod';
+      const response = await fetch(`${apiGatewayUrl}/translate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fileKey,
+          sourceLanguage,
+          targetLanguage
+        })
+      });
+      if (!response.ok) {
+        throw new Error(`Translation request failed with status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data.jobId;
     } catch (error) {
       console.error('Error requesting translation:', error);
       throw error;
     }
   },
   
-  // Get the translated file key once processing is complete
+  // Get the translated file key once processing is complete via API Gateway
   getTranslatedFileKey: async (jobId) => {
-    // In real application, you would call your API to get the translated file key
-    // For demonstration, we'll simulate a response
-    
     try {
-      // Simulating API call
-      // const response = await fetch(`your-api-gateway-url/result?jobId=${jobId}`);
-      // const data = await response.json();
-      // return data.translatedFileKey;
-      
-      // For now, append '-translated' to the original jobId (fileKey)
-      return `${jobId}-translated`;
+      // Call API Gateway endpoint to get translated file key
+      const apiGatewayUrl = process.env.REACT_APP_API_GATEWAY_URL || 'https://your-api-gateway-url.execute-api.us-east-1.amazonaws.com/prod';
+      const response = await fetch(`${apiGatewayUrl}/result?jobId=${encodeURIComponent(jobId)}`);
+      if (!response.ok) {
+        throw new Error(`Failed to get translated file key with status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data.translatedFileKey;
     } catch (error) {
       console.error('Error getting translated file key:', error);
       throw error;
