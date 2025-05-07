@@ -4,7 +4,7 @@
 This project involves developing a web-based application for translating PPT files to Traditional Chinese (Taiwan). The app will feature a simple interface for file uploads, progress tracking, and downloads, leveraging AWS services for storage, processing, and deployment. The solution will be fully defined using AWS CDK for infrastructure as code, ensuring scalability and maintainability.
 
 ## Core Requirements
-- **Web Interface**: A lightweight React app hosted on AWS Amplify for user uploads, translation requests, and downloads.
+- **Web Interface**: A lightweight React app hosted on AWS CloudFront + S3 for user uploads, translation requests, and downloads.
 - **Storage**: Use AWS S3 with presigned URLs for secure file uploads and downloads.
 - **Processing**: Trigger translation via S3 events to AWS Lambda, which starts an ECS Fargate task (in Spot mode) to handle PPT processing and translation using Amazon Bedrock (Claude 3.7).
 - **Translation**: Auto-detect source language and translate to Traditional Chinese (Taiwan), with extensibility for other languages and models.

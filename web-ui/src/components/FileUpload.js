@@ -40,7 +40,7 @@ const FileUpload = ({ onFileUploaded, onError }) => {
       const timestamp = new Date().getTime();
       const uniqueFileName = `${timestamp}-${selectedFile.name}`;
       
-      // Get presigned URL
+      // Get presigned URL or POST data
       const { uploadURL, fileKey } = await S3Service.getPresignedUploadUrl(
         S3_BUCKET_NAME,
         uniqueFileName,
@@ -53,7 +53,7 @@ const FileUpload = ({ onFileUploaded, onError }) => {
         await new Promise(resolve => setTimeout(resolve, 200));
       }
       
-      // Upload file using presigned URL
+      // Upload file using presigned URL or POST data
       await S3Service.uploadFileWithPresignedUrl(uploadURL, selectedFile);
       
       setUploadProgress(100);

@@ -2,8 +2,13 @@ import { fetch } from 'whatwg-fetch';
 
 // API Service for handling interactions with backend Lambda functions via API Gateway
 export const ApiService = {
-  // Base API endpoint - to be replaced with actual API Gateway endpoint
-  baseUrl: process.env.REACT_APP_API_GATEWAY_URL || 'https://placeholder-api-gateway-url.execute-api.us-west-2.amazonaws.com/prod',
+  // Base API endpoint - using endpoint from aws-exports.js
+  baseUrl: require('../aws-exports').default.apiGateway.endpoint,
+  // Log the base URL to confirm which endpoint is being used
+  logBaseUrl: function() {
+    console.log(`[${new Date().toISOString()}] API Base URL: ${this.baseUrl}`);
+    return this.baseUrl;
+  },
   
   // Make a request to the API
   async makeRequest(endpoint, method = 'GET', body = null) {
@@ -11,7 +16,9 @@ export const ApiService = {
       method,
       headers: {
         'Content-Type': 'application/json',
-      }
+      },
+      mode: 'cors',
+      credentials: 'same-origin'
     };
     
     if (body) {
@@ -19,6 +26,11 @@ export const ApiService = {
     }
     
     try {
+      // Log the full URL and request body before making the request
+      console.log(`[${new Date().toISOString()}] Making ${method} request to: ${this.baseUrl}${endpoint}`);
+      if (body) {
+        console.log(`[${new Date().toISOString()}] Request body:`, JSON.stringify(body));
+      }
       const response = await fetch(`${this.baseUrl}${endpoint}`, options);
       if (!response.ok) {
         const errorText = await response.text();
@@ -38,14 +50,25 @@ export const S3Service = {
   async getPresignedUploadUrl(bucketName, fileName, fileType) {
     try {
       const data = await ApiService.makeRequest('/presigned-upload-url', 'POST', {
-        bucketName,
-        fileName,
-        fileType
+        bucket_name: bucketName,
+        object_key: fileName,
+        fileType: fileType,
+        operation: 'put_object'  // Explicitly request put_object operation
       });
-      return {
-        uploadURL: data.uploadURL,
-        fileKey: data.fileKey
-      };
+      console.log(`[${new Date().toISOString()}] Response data from presigned-upload-url:`, data);
+      
+      // Check if we have a presigned POST URL
+      if (data.post_data && data.post_data.url && data.post_data.fields) {
+        return {
+          uploadURL: data.post_data,  // Return the entire data object with url and fields
+          fileKey: data.object_key || fileName
+        };
+      } else {
+        return {
+          uploadURL: data.presigned_url,
+          fileKey: data.object_key || fileName
+        };
+      }
     } catch (error) {
       console.error('Error getting presigned upload URL:', error);
       throw error;
@@ -56,31 +79,71 @@ export const S3Service = {
   async getPresignedDownloadUrl(bucketName, fileKey) {
     try {
       const data = await ApiService.makeRequest('/presigned-download-url', 'POST', {
-        bucketName,
-        fileKey
+        bucket_name: bucketName,
+        object_key: fileKey,
+        operation: 'get_object'  // Explicitly request get_object operation
       });
-      return data.downloadURL;
+      return data.presigned_url;
     } catch (error) {
       console.error('Error getting presigned download URL:', error);
       throw error;
     }
   },
   
-  // Upload a file directly to S3 using presigned URL
-  async uploadFileWithPresignedUrl(presignedUrl, file) {
+  // Upload a file directly to S3 using presigned URL or POST data
+  async uploadFileWithPresignedUrl(presignedData, file) {
     try {
-      const response = await fetch(presignedUrl, {
-        method: 'PUT',
-        body: file,
-        headers: {
-          'Content-Type': file.type
+      // Check if we have a presigned POST URL (object with url and fields)
+      if (presignedData.url && presignedData.fields) {
+        console.log(`[${new Date().toISOString()}] Uploading file using presigned POST data`);
+        
+        // Create a FormData object
+        const formData = new FormData();
+        
+        // Add all the fields from the presigned data
+        Object.entries(presignedData.fields).forEach(([key, value]) => {
+          formData.append(key, value);
+        });
+        
+        // Add the file as the last field
+        formData.append('file', file);
+        
+        // Upload using POST
+        const response = await fetch(presignedData.url, {
+          method: 'POST',
+          body: formData,
+          mode: 'cors'
+        });
+        
+        if (response.ok) {
+          console.log(`[${new Date().toISOString()}] File uploaded successfully using POST`);
+          return true;
+        } else {
+          const errorText = await response.text();
+          console.error(`[${new Date().toISOString()}] Upload failed with status: ${response.status}, Error: ${errorText}`);
+          throw new Error(`Upload failed with status: ${response.status}`);
         }
-      });
-      
-      if (response.ok) {
-        return true;
       } else {
-        throw new Error(`Upload failed with status: ${response.status}`);
+        // Fall back to the old PUT method
+        console.log(`[${new Date().toISOString()}] Uploading file to presigned URL: ${presignedData}`);
+        
+        const response = await fetch(presignedData, {
+          method: 'PUT',
+          body: file,
+          headers: {
+            'Content-Type': file.type
+          },
+          mode: 'cors'
+        });
+        
+        if (response.ok) {
+          console.log(`[${new Date().toISOString()}] File uploaded successfully using PUT`);
+          return true;
+        } else {
+          const errorText = await response.text();
+          console.error(`[${new Date().toISOString()}] Upload failed with status: ${response.status}, Error: ${errorText}`);
+          throw new Error(`Upload failed with status: ${response.status}`);
+        }
       }
     } catch (error) {
       console.error('Error uploading file with presigned URL:', error);

@@ -16,9 +16,9 @@ The project is in the Memory Bank initialization phase. All core Memory Bank fil
   - All files are in place and reflect the initial project context.
 
 - **What's Left to Build**:
-  - Task 2: Set up infrastructure using AWS CDK (S3, Lambda, ECS Fargate, ECR, and Amplify).
+  - Task 2: Set up infrastructure using AWS CDK (S3, Lambda, ECS Fargate, ECR, and CloudFront + S3).
   - Task 3: Implement S3 storage with presigned URLs.
-  - Task 4: Develop and deploy the React web interface on Amplify.
+  - Task 4: Develop and deploy the React web interface on CloudFront + S3.
   - Task 5: Configure event triggering with Lambda.
   - Task 6: Build and deploy the translation processing container on ECS Fargate (with Spot mode).
   - Task 7: Integrate Amazon Bedrock for translation.

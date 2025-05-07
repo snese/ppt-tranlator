@@ -22,7 +22,7 @@ This document outlines the updates made to the infrastructure setup for the Powe
 ## Next Steps
 - **Build and Push Docker Image**: Build the updated Docker image for both x86 and ARM architectures to ensure compatibility on the user's Mac with an M3 Pro chip, and push it to Amazon Elastic Container Registry (ECR).
 - **Deploy Infrastructure**: Proceed with deploying the infrastructure using AWS CDK with the specified AWS profile `gd-developer`.
-- **Testing**: Perform thorough testing across all deployed components (S3 buckets, Lambda functions, ECS Fargate clusters, ECR repositories, and Amplify apps) to confirm they are operational as per the requirements in 'task1-infrastructure-setup.md'.
+- **Testing**: Perform thorough testing across all deployed components (S3 buckets, Lambda functions, ECS Fargate clusters, ECR repositories, and CloudFront + S3 apps) to confirm they are operational as per the requirements in 'task1-infrastructure-setup.md'.
 - **Issue Resolution**: If any issues are encountered during deployment or testing, create detailed GitHub issues with precise problem descriptions, reproduction steps, expected vs. actual behavior, relevant errors/logs, potential solutions/workarounds, and priority assessment.
 
 ## Documentation

@@ -25,7 +25,7 @@
 ## Technical Constraints
 - **Region**: Default to us-east-1 for AWS services, but configurable via CDK.
 - **Cost Management**: Limit Fargate tasks to Spot instances where possible, with monitoring via AWS CloudWatch.
-- **Scalability**: Amplify and ECS Fargate handle auto-scaling based on demand.
+- **Scalability**: CloudFront + S3 and ECS Fargate handle auto-scaling based on demand.
 - **Security**: Use IAM roles for least-privilege access; ensure all interactions with S3 and Bedrock are via secure, authenticated channels.
 - **Compatibility**: Ensure the solution works across modern browsers and devices, with fallback mechanisms for interruptions (e.g., Spot task failures).
 

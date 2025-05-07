@@ -9,7 +9,7 @@ The project is in the initial setup phase, focusing on initializing the Memory B
 
 ## Next Steps
 - Complete the initialization of all Memory Bank files (projectbrief.md, systemPatterns.md, techContext.md, and progress.md).
-- Proceed to Task 2: Set up infrastructure using AWS CDK, including S3, Lambda, ECS Fargate, ECR, and Amplify.
+- Proceed to Task 2: Set up infrastructure using AWS CDK, including S3, Lambda, ECS Fargate, ECR, and CloudFront + S3.
 - After Memory Bank initialization, update this file to reflect the transition to implementing user stories.
 
 ## Important Patterns and Preferences

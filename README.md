@@ -22,7 +22,7 @@ PowerPoint Translator is a cutting-edge, serverless application that automates t
 
 ```mermaid
 graph TD
-    A[User] -->|Uploads PPT| B[Web UI - AWS Amplify]
+    A[User] -->|Uploads PPT| B[Web UI - AWS CloudFront + S3]
     B -->|Get Presigned URL| C[S3 Upload Bucket]
     B -->|Initiates Translation| D[Lambda Function]
     D -->|Triggers| E[ECS Fargate with Translation Container]
@@ -86,7 +86,7 @@ graph TD
 
 The application uses a CI/CD pipeline that automatically deploys changes when code is pushed to the main branch:
 
-1. **Frontend**: AWS Amplify automatically rebuilds and deploys the React application
+1. **Frontend**: AWS CloudFront + S3 automatically rebuilds and deploys the React application
 2. **Backend**: GitHub Actions workflow updates Lambda functions and container images
 3. **Infrastructure**: CDK deployment updates any infrastructure changes
 

@@ -5,7 +5,7 @@ The PPT Translation App follows a serverless, event-driven architecture leveragi
 
 ```mermaid
 flowchart LR
-    User[User] -->|1. Upload PPT| WebApp[React Web App on Amplify]
+    User[User] -->|1. Upload PPT| WebApp[React Web App on CloudFront + S3]
     WebApp -->|2. Presigned URL Upload| S3Original[S3 Bucket - Original Files]
     S3Original -->|3. Event Trigger| Lambda[Lambda Function]
     Lambda -->|4. Start Task| Fargate[ECS Fargate Container - Spot Mode]

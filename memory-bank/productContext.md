@@ -19,4 +19,4 @@ This application addresses the need for efficient translation of presentation fi
 - **Simplicity**: Intuitive interface with minimal steps for upload, translation, and download.
 - **Feedback**: Real-time progress indicators to keep users informed without frustration.
 - **Reliability**: Handle interruptions gracefully (e.g., via Fargate Spot) and ensure translations are accurate and quick.
-- **Accessibility**: Deployed on AWS Amplify for easy access, with responsive design for various devices.
+- **Accessibility**: Deployed on AWS CloudFront + S3 for easy access, with responsive design for various devices.
