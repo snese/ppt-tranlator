@@ -190,5 +190,25 @@ export const TranslationService = {
       Logger.error('Error getting translation result:', error);
       throw error;
     }
+  },
+  
+  // Get translated file key from translation result
+  async getTranslatedFileKey(jobId) {
+    try {
+      Logger.info(`Getting translated file key for job: ${jobId}`);
+      
+      const result = await this.getTranslationResult(jobId);
+      
+      if (result && result.fileKey) {
+        Logger.info(`Translated file key for job ${jobId}: ${result.fileKey}`);
+        return result.fileKey;
+      } else {
+        Logger.warn(`No file key found in translation result for job ${jobId}`);
+        throw new Error('No file key found in translation result');
+      }
+    } catch (error) {
+      Logger.error('Error getting translated file key:', error);
+      throw error;
+    }
   }
 };

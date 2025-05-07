@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { TranslationService } from '../services/aws-service';
+import Logger from '../utils/logger';
 
 const ProgressTracker = ({ jobId, onTranslationComplete, onTranslationFailed }) => {
   const [status, setStatus] = useState('pending');
@@ -21,24 +22,29 @@ const ProgressTracker = ({ jobId, onTranslationComplete, onTranslationFailed }) 
         const currentStatus = await TranslationService.checkTranslationStatus(jobId);
         setStatus(currentStatus);
         setProgress(statusToProgress[currentStatus] || 0);
-        console.log(`[${new Date().toISOString()}] Translation status for Job ID ${jobId}: ${currentStatus}, Progress: ${statusToProgress[currentStatus] || 0}%`);
+        Logger.info(`Translation status for Job ID ${jobId}: ${currentStatus}, Progress: ${statusToProgress[currentStatus] || 0}%`);
 
         if (currentStatus === 'completed') {
-          const fileKey = await TranslationService.getTranslatedFileKey(jobId);
-          console.log(`[${new Date().toISOString()}] Translation completed for Job ID ${jobId}, File Key: ${fileKey}`);
-          onTranslationComplete && onTranslationComplete(fileKey);
+          try {
+            const fileKey = await TranslationService.getTranslatedFileKey(jobId);
+            Logger.info(`Translation completed for Job ID ${jobId}, File Key: ${fileKey}`);
+            onTranslationComplete && onTranslationComplete(fileKey);
+          } catch (fileKeyError) {
+            Logger.error(`Error getting translated file key for Job ID ${jobId}:`, fileKeyError);
+            setError(`Error retrieving translated file: ${fileKeyError.message}`);
+          }
         } else if (currentStatus === 'failed') {
           setError('Translation failed. Please try again.');
-          console.log(`[${new Date().toISOString()}] Translation failed for Job ID ${jobId}`);
+          Logger.warn(`Translation failed for Job ID ${jobId}`);
           onTranslationFailed && onTranslationFailed('Translation process failed');
         } else {
           // If still processing, continue polling
-          console.log(`[${new Date().toISOString()}] Continuing to poll status for Job ID ${jobId}`);
+          Logger.info(`Continuing to poll status for Job ID ${jobId}`);
           setTimeout(checkStatus, 3000);
         }
       } catch (err) {
         setError(`Error checking translation status: ${err.message}`);
-        console.error(`[${new Date().toISOString()}] Error checking translation status for Job ID ${jobId}:`, err);
+        Logger.error(`Error checking translation status for Job ID ${jobId}:`, err);
         onTranslationFailed && onTranslationFailed(err.message);
       }
     };
