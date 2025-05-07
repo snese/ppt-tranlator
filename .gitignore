@@ -32,10 +32,17 @@ yarn-error.log
 .npm/
 .yarn/
 
+# TypeScript
+*.js
+*.d.ts
+!jest.config.js
+
 # AWS CDK
 cdk.out/
 .cdk.staging/
 cdk-outputs.json
+cdk-deploy-output.json
+cdk-deploy-output.txt
 
 # Environment variables
 .env

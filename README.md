@@ -49,61 +49,63 @@ flowchart LR
    cd powerpoint-translator
    ```
 
-2. **Install backend dependencies**
+2. **Install dependencies**
    ```bash
+   # Install root dependencies and link workspaces
+   npm install
+   
+   # Install backend dependencies
    cd translator-app
    pip install -r requirements.txt
    cd ..
    ```
 
-3. **Install frontend dependencies**
-   ```bash
-   cd web-ui
-   npm install
-   cd ..
-   ```
-
-4. **Configure AWS credentials**
+3. **Configure AWS credentials**
    ```bash
    aws configure
    ```
 
-5. **Deploy infrastructure**
+4. **Deploy infrastructure**
    ```bash
-   cd cdk
-   cdk synth
-   cdk deploy
-   cd ..
+   # Deploy all resources
+   npm run deploy
+   
+   # Or deploy just the CDK stack
+   npm run deploy:cdk
    ```
 
-6. **Start local development server**
+5. **Start local development server**
    ```bash
-   cd web-ui
-   npm start
+   npm run start:web
    ```
 
 ## 🚀 Deployment
 
-The application uses AWS CDK for infrastructure deployment:
+The application uses a monorepo structure with npm workspaces for easy deployment:
 
-1. **Infrastructure**: Deploy AWS resources using CDK
+1. **Deploy everything at once**
    ```bash
-   cd cdk
-   cdk deploy
+   npm run deploy
    ```
 
-2. **Lambda Functions**: Update Lambda function code
+2. **Deploy individual components**
    ```bash
+   # Deploy just the infrastructure
+   npm run deploy:cdk
+   
+   # Deploy just the frontend
+   npm run deploy:web
+   ```
+
+3. **Update Lambda functions**
+   ```bash
+   # Create Lambda deployment package
    cd translator-app
-   zip -r lambda-package.zip lambda-package/*
-   aws lambda update-function-code --function-name YourFunctionName --zip-file fileb://lambda-package.zip
-   ```
-
-3. **Frontend**: Deploy React application to S3
-   ```bash
-   cd web-ui
-   npm run build
-   aws s3 sync build/ s3://your-s3-bucket-name
+   zip -r translator-app.zip *.py
+   cd ..
+   
+   # Deploy CDK stack with updated Lambda code
+   npm run deploy:cdk
    ```
 
 ## 📋 Project Structure

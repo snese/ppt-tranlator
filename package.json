@@ -1,0 +1,47 @@
+{
+  "name": "ppt-translator",
+  "version": "1.0.0",
+  "description": "PowerPoint Translator - A serverless application for translating PowerPoint presentations",
+  "private": true,
+  "workspaces": [
+    "cdk",
+    "web-ui"
+  ],
+  "scripts": {
+    "build:cdk": "cd cdk && npm run build",
+    "build:web": "cd web-ui && npm run build",
+    "build": "npm run build:cdk && npm run build:web",
+    "deploy:cdk": "cd cdk && npm run cdk deploy",
+    "deploy:web": "aws s3 sync web-ui/build/ s3://ppt-translation-web-app-unique",
+    "deploy": "npm run build && npm run deploy:cdk && npm run deploy:web",
+    "synth": "cd cdk && npm run cdk synth",
+    "start:web": "cd web-ui && npm start",
+    "test:cdk": "cd cdk && npm test",
+    "test:web": "cd web-ui && npm test",
+    "test": "npm run test:cdk && npm run test:web",
+    "bootstrap": "lerna bootstrap",
+    "clean": "lerna clean",
+    "version": "lerna version",
+    "prepare-lambda": "cd translator-app && zip -r translator-app.zip *.py"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/powerpoint-translator.git"
+  },
+  "keywords": [
+    "aws",
+    "serverless",
+    "powerpoint",
+    "translation",
+    "bedrock",
+    "claude"
+  ],
+  "author": "",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "lerna": "^7.4.2"
+  }
+}
