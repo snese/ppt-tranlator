@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { S3Service } from '../services/aws-service';
+import awsConfig from '../aws-exports';
 
-// Configuration - would come from environment variables in production
-const S3_BUCKET_NAME = 'XXXXXXXXXXXXXXXXXXXXXXXXX'; // Replace with your actual bucket name
+// Configuration - using bucket name from aws-exports
+const S3_BUCKET_NAME = awsConfig.s3.originalBucket || 'ORIGINAL_FILES_BUCKET_PLACEHOLDER';
 
 const FileUpload = ({ onFileUploaded, onError }) => {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -16,20 +17,24 @@ const FileUpload = ({ onFileUploaded, onError }) => {
       if (!file.name.endsWith('.ppt') && !file.name.endsWith('.pptx')) {
         alert('Please select a PowerPoint file (.ppt or .pptx)');
         event.target.value = null;
+        console.log(`[${new Date().toISOString()}] Invalid file type selected: ${file.name}`);
         return;
       }
       setSelectedFile(file);
+      console.log(`[${new Date().toISOString()}] File selected: ${file.name}, Size: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
     }
   };
 
   const handleUpload = async () => {
     if (!selectedFile) {
       alert('Please select a file first');
+      console.log(`[${new Date().toISOString()}] Upload attempted without file selection`);
       return;
     }
 
     try {
       setUploading(true);
+      console.log(`[${new Date().toISOString()}] Starting upload for file: ${selectedFile.name}`);
       
       // Generate a unique file name to prevent overwriting
       const timestamp = new Date().getTime();
@@ -55,10 +60,12 @@ const FileUpload = ({ onFileUploaded, onError }) => {
       
       // Notify parent component that file upload is complete
       onFileUploaded(fileKey, selectedFile.name);
+      console.log(`[${new Date().toISOString()}] Upload completed for file: ${selectedFile.name}, File Key: ${fileKey}`);
       
     } catch (error) {
-      console.error('Error uploading file:', error);
-      onError('File upload failed');
+      console.error(`[${new Date().toISOString()}] Error uploading file:`, error);
+      onError(`File upload failed: ${error.message}`);
+      console.log(`[${new Date().toISOString()}] Upload failed for file: ${selectedFile.name}`);
     } finally {
       setUploading(false);
     }

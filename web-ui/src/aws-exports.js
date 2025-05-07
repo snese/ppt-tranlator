@@ -31,8 +31,8 @@ const awsConfig = {
     region: 'us-west-2' // Confirmed as correct
   },
   s3: {
-    originalBucket: 'ppt-translation-original-files', // Updated with S3 bucket name for original files
-    translatedBucket: 'ppt-translation-translated-files' // Updated with S3 bucket name for translated files
+    originalBucket: 'ppt-translation-original-cdkstack-e5i9c', // Placeholder, to be updated post-deployment
+    translatedBucket: 'ppt-translation-translated-cdkstack-e5i9c' // Placeholder, to be updated post-deployment
   }
 };
 

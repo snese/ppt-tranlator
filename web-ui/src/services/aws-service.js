@@ -1,63 +1,73 @@
-import AWS from 'aws-sdk';
+import { fetch } from 'whatwg-fetch';
 
-// Configure AWS SDK
-const configureAWS = (region = 'us-east-1') => {
-  AWS.config.update({
-    region: region,
-    // In production, use proper authentication methods
-    // For development, credentials could be provided through environment variables
-    // or using Cognito Identity/Amplify
-  });
-};
-
-// S3 Service for handling file uploads and downloads
-export const S3Service = {
-  // Generate a presigned URL for uploading a file to S3
-  getPresignedUploadUrl: async (bucketName, fileName, fileType) => {
-    configureAWS();
-    const s3 = new AWS.S3();
-    
-    const params = {
-      Bucket: bucketName,
-      Key: fileName,
-      ContentType: fileType,
-      Expires: 60 * 5 // URL expires in 5 minutes
+// API Service for handling interactions with backend Lambda functions via API Gateway
+export const ApiService = {
+  // Base API endpoint - to be replaced with actual API Gateway endpoint
+  baseUrl: process.env.REACT_APP_API_GATEWAY_URL || 'https://placeholder-api-gateway-url.execute-api.us-west-2.amazonaws.com/prod',
+  
+  // Make a request to the API
+  async makeRequest(endpoint, method = 'GET', body = null) {
+    const options = {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+      }
     };
     
+    if (body) {
+      options.body = JSON.stringify(body);
+    }
+    
     try {
-      const uploadURL = await s3.getSignedUrlPromise('putObject', params);
+      const response = await fetch(`${this.baseUrl}${endpoint}`, options);
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`API request failed with status ${response.status}: ${errorText}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error(`Error making ${method} request to ${endpoint}:`, error);
+      throw error;
+    }
+  }
+};
+
+// S3 Service for handling file uploads and downloads via presigned URLs
+export const S3Service = {
+  // Get a presigned URL for uploading a file to S3 by calling Lambda function
+  async getPresignedUploadUrl(bucketName, fileName, fileType) {
+    try {
+      const data = await ApiService.makeRequest('/presigned-upload-url', 'POST', {
+        bucketName,
+        fileName,
+        fileType
+      });
       return {
-        uploadURL,
-        fileKey: fileName
+        uploadURL: data.uploadURL,
+        fileKey: data.fileKey
       };
     } catch (error) {
-      console.error('Error generating presigned URL:', error);
+      console.error('Error getting presigned upload URL:', error);
       throw error;
     }
   },
   
-  // Generate a presigned URL for downloading a file from S3
-  getPresignedDownloadUrl: async (bucketName, fileKey) => {
-    configureAWS();
-    const s3 = new AWS.S3();
-    
-    const params = {
-      Bucket: bucketName,
-      Key: fileKey,
-      Expires: 60 * 5 // URL expires in 5 minutes
-    };
-    
+  // Get a presigned URL for downloading a file from S3 by calling Lambda function
+  async getPresignedDownloadUrl(bucketName, fileKey) {
     try {
-      const downloadURL = await s3.getSignedUrlPromise('getObject', params);
-      return downloadURL;
+      const data = await ApiService.makeRequest('/presigned-download-url', 'POST', {
+        bucketName,
+        fileKey
+      });
+      return data.downloadURL;
     } catch (error) {
-      console.error('Error generating download URL:', error);
+      console.error('Error getting presigned download URL:', error);
       throw error;
     }
   },
   
   // Upload a file directly to S3 using presigned URL
-  uploadFileWithPresignedUrl: async (presignedUrl, file) => {
+  async uploadFileWithPresignedUrl(presignedUrl, file) {
     try {
       const response = await fetch(presignedUrl, {
         method: 'PUT',
@@ -81,43 +91,14 @@ export const S3Service = {
 
 // Translation status service
 export const TranslationService = {
-  // Poll for translation status via API Gateway
-  checkTranslationStatus: async (fileKey) => {
-    try {
-      // Call API Gateway endpoint for status check
-      const apiGatewayUrl = process.env.REACT_APP_API_GATEWAY_URL || 'https://your-api-gateway-url.execute-api.us-east-1.amazonaws.com/prod';
-      const response = await fetch(`${apiGatewayUrl}/status?fileKey=${encodeURIComponent(fileKey)}`);
-      if (!response.ok) {
-        throw new Error(`Status check failed with status: ${response.status}`);
-      }
-      const data = await response.json();
-      return data.status;
-    } catch (error) {
-      console.error('Error checking translation status:', error);
-      throw error;
-    }
-  },
-  
   // Request translation of a file via API Gateway
-  requestTranslation: async (fileKey, sourceLanguage, targetLanguage) => {
+  async requestTranslation(fileKey, sourceLanguage, targetLanguage) {
     try {
-      // Call API Gateway endpoint to initiate translation
-      const apiGatewayUrl = process.env.REACT_APP_API_GATEWAY_URL || 'https://your-api-gateway-url.execute-api.us-east-1.amazonaws.com/prod';
-      const response = await fetch(`${apiGatewayUrl}/translate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fileKey,
-          sourceLanguage,
-          targetLanguage
-        })
+      const data = await ApiService.makeRequest('/translate', 'POST', {
+        fileKey,
+        sourceLanguage,
+        targetLanguage
       });
-      if (!response.ok) {
-        throw new Error(`Translation request failed with status: ${response.status}`);
-      }
-      const data = await response.json();
       return data.jobId;
     } catch (error) {
       console.error('Error requesting translation:', error);
@@ -125,16 +106,21 @@ export const TranslationService = {
     }
   },
   
-  // Get the translated file key once processing is complete via API Gateway
-  getTranslatedFileKey: async (jobId) => {
+  // Poll for translation status via API Gateway
+  async checkTranslationStatus(jobId) {
     try {
-      // Call API Gateway endpoint to get translated file key
-      const apiGatewayUrl = process.env.REACT_APP_API_GATEWAY_URL || 'https://your-api-gateway-url.execute-api.us-east-1.amazonaws.com/prod';
-      const response = await fetch(`${apiGatewayUrl}/result?jobId=${encodeURIComponent(jobId)}`);
-      if (!response.ok) {
-        throw new Error(`Failed to get translated file key with status: ${response.status}`);
-      }
-      const data = await response.json();
+      const data = await ApiService.makeRequest(`/status?jobId=${encodeURIComponent(jobId)}`);
+      return data.status;
+    } catch (error) {
+      console.error('Error checking translation status:', error);
+      throw error;
+    }
+  },
+  
+  // Get the translated file key once processing is complete via API Gateway
+  async getTranslatedFileKey(jobId) {
+    try {
+      const data = await ApiService.makeRequest(`/result?jobId=${encodeURIComponent(jobId)}`);
       return data.translatedFileKey;
     } catch (error) {
       console.error('Error getting translated file key:', error);
