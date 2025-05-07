@@ -38,10 +38,10 @@ log_message "CDK deployment completed"
 
 # Step 3: Retrieve Critical Output Parameters
 log_message "Step 3: Extracting output parameters from CDK deployment..."
-API_GATEWAY_ENDPOINT=$(awk '/ApiGatewayEndpoint =/ {print substr($0, index($0, "=") + 2)}' "$CDK_OUTPUT_FILE" | head -1)
-ORIGINAL_BUCKET=$(awk '/OriginalBucketName =/ {print substr($0, index($0, "=") + 2)}' "$CDK_OUTPUT_FILE" | head -1)
-TRANSLATED_BUCKET=$(awk '/TranslatedBucketName =/ {print substr($0, index($0, "=") + 2)}' "$CDK_OUTPUT_FILE" | head -1)
-CLOUDFRONT_DOMAIN=$(awk '/CloudFrontDistributionDomain =/ {print substr($0, index($0, "=") + 2)}' "$CDK_OUTPUT_FILE" | head -1)
+API_GATEWAY_ENDPOINT=$(grep "ApiGatewayEndpoint =" "$CDK_OUTPUT_FILE" | cut -d '=' -f 2 | xargs | head -1)
+ORIGINAL_BUCKET=$(grep "OriginalBucketName =" "$CDK_OUTPUT_FILE" | cut -d '=' -f 2 | xargs | head -1)
+TRANSLATED_BUCKET=$(grep "TranslatedBucketName =" "$CDK_OUTPUT_FILE" | cut -d '=' -f 2 | xargs | head -1)
+CLOUDFRONT_DOMAIN=$(grep "CloudFrontDistributionDomain =" "$CDK_OUTPUT_FILE" | cut -d '=' -f 2 | xargs | head -1)
 
 # Validate extracted parameters
 if [ -z "$API_GATEWAY_ENDPOINT" ] || [ -z "$ORIGINAL_BUCKET" ] || [ -z "$TRANSLATED_BUCKET" ] || [ -z "$CLOUDFRONT_DOMAIN" ]; then

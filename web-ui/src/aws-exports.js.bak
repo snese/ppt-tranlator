@@ -12,10 +12,10 @@ const awsConfig = {
   },
   s3: {
     originalBucket: '', // Updated with correct bucket name
-    translatedBucket: '', // Updated with correct bucket name
+    translatedBucket: '' // Updated with correct bucket name
   },
   cloudfront: {
-    domain: '', // Updated with CloudFront distribution domain
+    domain: '' // Updated with CloudFront distribution domain
   }
 };
 
