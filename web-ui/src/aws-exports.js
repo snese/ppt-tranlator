@@ -7,15 +7,15 @@
 const awsConfig = {
   region: 'us-west-2', // Confirmed as correct
   apiGateway: {
-    endpoint: '', // Updated with deployed API Gateway endpoint
+    endpoint: 'https://placeholder-api-gateway-url.execute-api.us-west-2.amazonaws.com/prod/', // Updated with placeholder for testing
     region: 'us-west-2' // Confirmed as correct
   },
   s3: {
-    originalBucket: '', // Updated with correct bucket name
-    translatedBucket: '' // Updated with correct bucket name
+    originalBucket: 'ppt-translation-original', // Updated with correct bucket name
+    translatedBucket: 'ppt-translation-translated' // Updated with correct bucket name
   },
   cloudfront: {
-    domain: '' // Updated with CloudFront distribution domain
+    domain: 'd1iym54zzxthz.cloudfront.net' // Updated with CloudFront distribution domain
   }
 };
 

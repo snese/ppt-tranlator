@@ -2,36 +2,34 @@
 
 ![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)
 ![Version](https://img.shields.io/badge/version-1.0.0-brightgreen.svg)
-![Status](https://img.shields.io/badge/status-production-green.svg)
+![Status](https://img.shields.io/badge/status-in%20development-yellow.svg)
 
 ## 🚀 Overview
 
-PowerPoint Translator is a cutting-edge, serverless application that automates the translation of PowerPoint presentations between languages using generative AI. Built for the modern developer workflow of 2025, this app leverages AWS cloud services and advanced AI to deliver fast, accurate translations while preserving the original formatting and layout of your presentations.
+PowerPoint Translator is a cutting-edge, serverless application that automates the translation of PowerPoint presentations between languages using generative AI. Built on AWS cloud services, this app leverages advanced AI to deliver fast, accurate translations while preserving the original formatting and layout of your presentations.
 
 ## 🎯 Key Features
 
 - **Seamless Upload Experience**: Drag-and-drop interface for simple presentation uploads
-- **AI-Powered Translation**: Utilizes Amazon Bedrock's advanced language models for high-quality translations
+- **AI-Powered Translation**: Utilizes Amazon Bedrock's Claude 3.7 model for high-quality translations
 - **Format Preservation**: Maintains the original PowerPoint formatting, styles, and layouts
-- **Multiple Language Support**: Translate your presentations into various languages
+- **Traditional Chinese Support**: Currently focused on translation to Traditional Chinese (zh-TW)
 - **Serverless Architecture**: Scales automatically with usage, no infrastructure management needed
-- **Rapid Processing**: Parallel processing for quick turnaround of even large presentations
 - **Secure Handling**: End-to-end encryption and temporary storage of your documents
 
 ## 🏗️ Architecture
 
 ```mermaid
-graph TD
-    A[User] -->|Uploads PPT| B[Web UI - AWS CloudFront + S3]
-    B -->|Get Presigned URL| C[S3 Upload Bucket]
-    B -->|Initiates Translation| D[Lambda Function]
-    D -->|Triggers| E[ECS Fargate with Translation Container]
-    E -->|Downloads PPT| C
-    E -->|Calls Translation API| F[Amazon Bedrock]
-    F -->|Returns Translated Text| E
-    E -->|Uploads Translated PPT| G[S3 Results Bucket]
-    G -->|Presigned URL for Download| B
-    B -->|Download Translated PPT| A
+flowchart LR
+    User[User] -->|1. Upload PPT| WebApp[React Web App on CloudFront + S3]
+    WebApp -->|2. Presigned URL Upload| S3Original[S3 Bucket - Original Files]
+    S3Original -->|3. Event Triggers| Lambda[Lambda Function]
+    Lambda -->|4. Start Task| LambdaTranslate[Lambda - Translation]
+    LambdaTranslate -->|5. Download File| S3Original
+    LambdaTranslate -->|6. Translate with Bedrock| Bedrock[Amazon Bedrock - Claude 3.7]
+    LambdaTranslate -->|7. Upload Translated File| S3Translated[S3 Bucket - Translated Files]
+    S3Translated -->|8. Status Update| WebApp
+    WebApp -->|9. Presigned URL Download| User
 ```
 
 ## 🔧 Installation & Setup
@@ -42,7 +40,6 @@ graph TD
 - Node.js v20+ and npm/yarn
 - Python 3.12+
 - AWS CDK v3.0+
-- Docker (for local development)
 
 ### Local Development Setup
 
@@ -73,7 +70,10 @@ graph TD
 
 5. **Deploy infrastructure**
    ```bash
-   npx aws-cdk deploy --all
+   cd cdk
+   cdk synth
+   cdk deploy
+   cd ..
    ```
 
 6. **Start local development server**
@@ -84,15 +84,68 @@ graph TD
 
 ## 🚀 Deployment
 
-The application uses a CI/CD pipeline that automatically deploys changes when code is pushed to the main branch:
+The application uses AWS CDK for infrastructure deployment:
 
-1. **Frontend**: AWS CloudFront + S3 automatically rebuilds and deploys the React application
-2. **Backend**: GitHub Actions workflow updates Lambda functions and container images
-3. **Infrastructure**: CDK deployment updates any infrastructure changes
+1. **Infrastructure**: Deploy AWS resources using CDK
+   ```bash
+   cd cdk
+   cdk deploy
+   ```
+
+2. **Lambda Functions**: Update Lambda function code
+   ```bash
+   cd translator-app
+   zip -r lambda-package.zip lambda-package/*
+   aws lambda update-function-code --function-name YourFunctionName --zip-file fileb://lambda-package.zip
+   ```
+
+3. **Frontend**: Deploy React application to S3
+   ```bash
+   cd web-ui
+   npm run build
+   aws s3 sync build/ s3://your-s3-bucket-name
+   ```
+
+## 📋 Project Structure
+
+```
+powerpoint-translator/
+├── cdk/                    # AWS CDK infrastructure code
+├── translator-app/         # Lambda functions for translation
+│   ├── lambda-package/     # Lambda deployment package
+│   ├── translation_handler.py  # Main translation logic
+│   └── presigned_url_generator.py  # URL generation for S3
+├── web-ui/                 # React frontend application
+│   ├── public/             # Static assets
+│   └── src/                # React source code
+├── memory-bank/            # Project documentation
+├── .gitignore              # Git ignore file
+├── README.md               # Project overview
+└── PRD.md                  # Product Requirements Document
+```
+
+## 🧪 Testing
+
+1. **Infrastructure Testing**
+   - Verify AWS resource creation via AWS Console
+   - Test CDK deployment commands
+
+2. **Lambda Function Testing**
+   - Test presigned URL generation
+   - Verify translation function with sample PPT files
+
+3. **Frontend Testing**
+   - Test user authentication flow
+   - Verify file upload and download functionality
+   - Test progress tracking and status updates
+
+## 📈 Current Status
+
+The project is currently in active development. See [memory-bank/progress.md](memory-bank/progress.md) for the latest status and upcoming tasks.
 
 ## 🤝 Contributing
 
-Contributions are welcome! Check out the [contributing guidelines](CONTRIBUTING.md) to get started.
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📄 License
 
@@ -116,11 +169,8 @@ limitations under the License.
 
 ## 📱 Contact & Support
 
-- **Website**: https://ppt-translator.dev
-- **Email**: support@ppt-translator.dev
-- **Twitter**: [@PPTranslator](https://twitter.com/PPTranslator)
-- **Discord**: [Join our community](https://discord.gg/ppt-translator)
+For questions or support, please open an issue on this repository.
 
 ---
 
-*Built with 💙 by an indie developer in 2025*
+*Built with AWS services and generative AI*

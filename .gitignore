@@ -1,2 +1,78 @@
-# Ignore example folder and its contents
-example/
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+venv/
+.venv/
+.pytest_cache/
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+.pnpm-debug.log
+.npm/
+.yarn/
+
+# AWS CDK
+cdk.out/
+.cdk.staging/
+cdk-outputs.json
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Build outputs
+/web-ui/build/
+/web-ui/dist/
+
+# Temporary files
+*.tmp
+*.bak
+*.log
+tmp/
+.coverage
+htmlcov/
+
+# PowerPoint temporary files
+~$*.pptx
+~$*.ppt
+
+# Deployment artifacts
+.aws-sam/
+example/MAM001_zh-TW_20250507_015757.pptx
+example/MAM001_zh-TW_20250507_021706.pptx
+example/MAM001.pptx
+example/sample1.md
+example/sample2.md
+example/sample3.md
+AmazonQ.md

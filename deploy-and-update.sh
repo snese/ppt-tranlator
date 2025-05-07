@@ -38,10 +38,10 @@ log_message "CDK deployment completed"
 
 # Step 3: Retrieve Critical Output Parameters
 log_message "Step 3: Extracting output parameters from CDK deployment..."
-API_GATEWAY_ENDPOINT=$(grep "ApiGatewayEndpoint =" "$CDK_OUTPUT_FILE" | cut -d '=' -f 2 | xargs | head -1)
-ORIGINAL_BUCKET=$(grep "OriginalBucketName =" "$CDK_OUTPUT_FILE" | cut -d '=' -f 2 | xargs | head -1)
-TRANSLATED_BUCKET=$(grep "TranslatedBucketName =" "$CDK_OUTPUT_FILE" | cut -d '=' -f 2 | xargs | head -1)
-CLOUDFRONT_DOMAIN=$(grep "CloudFrontDistributionDomain =" "$CDK_OUTPUT_FILE" | cut -d '=' -f 2 | xargs | head -1)
+API_GATEWAY_ENDPOINT=$(grep "ApiGatewayEndpoint =" "$CDK_OUTPUT_FILE" | sed 's/.* = //')
+ORIGINAL_BUCKET=$(grep "OriginalBucketName =" "$CDK_OUTPUT_FILE" | sed 's/.* = //')
+TRANSLATED_BUCKET=$(grep "TranslatedBucketName =" "$CDK_OUTPUT_FILE" | sed 's/.* = //')
+CLOUDFRONT_DOMAIN=$(grep "CloudFrontDistributionDomain =" "$CDK_OUTPUT_FILE" | sed 's/.* = //')
 
 # Validate extracted parameters
 if [ -z "$API_GATEWAY_ENDPOINT" ] || [ -z "$ORIGINAL_BUCKET" ] || [ -z "$TRANSLATED_BUCKET" ] || [ -z "$CLOUDFRONT_DOMAIN" ]; then
@@ -106,13 +106,5 @@ log_message "Step 6: Uploading Web UI build artifacts to S3 bucket..."
 WEB_BUCKET="ppt-translation-web-app-unique"  # Update if dynamic extraction is possible
 aws s3 sync build/ "s3://$WEB_BUCKET/" --delete || log_message "WARNING: Failed to upload build artifacts to S3 bucket $WEB_BUCKET"
 log_message "Web UI build artifacts uploaded to S3 bucket $WEB_BUCKET"
-
-# Step 7: Commit and Push Changes to Repository
-log_message "Step 7: Committing and pushing changes to repository..."
-cd /Users/hclo/Documents/Projects/ppt-translator || handle_error "Failed to navigate to project root directory"
-git add . || log_message "WARNING: Failed to stage changes for commit"
-git commit -m "Automated deployment and configuration update" || log_message "WARNING: Failed to commit changes"
-git push origin main || log_message "WARNING: Failed to push changes to remote repository"
-log_message "Changes committed and pushed to repository"
 
 log_message "Deployment and configuration automation script completed successfully"
