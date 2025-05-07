@@ -29,15 +29,18 @@ export const ApiService = {
     }
     
     try {
+      // Construct the URL properly to avoid double slashes
+      const baseUrlWithoutTrailingSlash = this.baseUrl.endsWith('/') 
+        ? this.baseUrl.slice(0, -1) 
+        : this.baseUrl;
+      
+      const url = `${baseUrlWithoutTrailingSlash}/${cleanEndpoint}`;
+      
       // Log the full URL and request body before making the request
-      console.log(`[${new Date().toISOString()}] Making ${method} request to: ${this.baseUrl}/${cleanEndpoint}`);
+      console.log(`[${new Date().toISOString()}] Making ${method} request to: ${url}`);
       if (body) {
         console.log(`[${new Date().toISOString()}] Request body:`, JSON.stringify(body));
       }
-      
-      // Construct the URL properly to avoid double slashes
-      const url = `${this.baseUrl}/${cleanEndpoint}`;
-      console.log(`[${new Date().toISOString()}] Final request URL: ${url}`);
       
       const response = await fetch(url, options);
       

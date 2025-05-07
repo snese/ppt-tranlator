@@ -27,8 +27,18 @@ def lambda_handler(event, context):
     logger.info("Lambda event received: %s", json.dumps(event))
     
     # Common CORS headers for all responses
+    # Get origin from request headers for CORS
+    origin = '*'
+    headers = event.get('headers', {})
+    if headers and 'origin' in headers:
+        origin = headers['origin']
+    elif headers and 'Origin' in headers:
+        origin = headers['Origin']
+    
+    logger.info(f"Request origin: {origin}")
+    
     cors_headers = {
-        'Access-Control-Allow-Origin': '*',  # Allow all origins for now, will be restricted in production
+        'Access-Control-Allow-Origin': origin,
         'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Requested-With',
         'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
         'Access-Control-Allow-Credentials': 'true',
