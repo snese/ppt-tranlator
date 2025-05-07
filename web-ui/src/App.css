@@ -309,3 +309,19 @@ button:disabled {
     align-items: stretch;
   }
 }
+.debug-toggle-button {
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 5px 10px;
+  margin-top: 10px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #666;
+}
+
+.debug-toggle-button:hover {
+  background-color: #e0e0e0;
+}
+
+/* Add this at the end of your App.css file */

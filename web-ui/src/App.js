@@ -4,7 +4,10 @@ import FileUpload from './components/FileUpload';
 import LanguageSelector from './components/LanguageSelector';
 import ProgressTracker from './components/ProgressTracker';
 import DownloadButton from './components/DownloadButton';
+import DebugPanel from './components/DebugPanel';
 import { TranslationService } from './services/aws-service';
+import AppConfig from './utils/appConfig';
+import Logger from './utils/logger';
 
 function App() {
   // File states
@@ -15,6 +18,16 @@ function App() {
   // Translation job states
   const [translationJobId, setTranslationJobId] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
+  
+  // Debug panel state
+  const [showDebugPanel, setShowDebugPanel] = useState(false);
+  
+  // Toggle debug panel visibility
+  const toggleDebugPanel = () => {
+    setShowDebugPanel(!showDebugPanel);
+    // Also toggle debug mode in the logger
+    AppConfig.toggleDebug();
+  };
   
   // Language states
   const [sourceLanguage, setSourceLanguage] = useState('en');
@@ -188,7 +201,17 @@ function App() {
       
       <footer className="App-footer">
         <p>PowerPoint Translation Service &copy; {new Date().getFullYear()}</p>
+        <button 
+          className="debug-toggle-button" 
+          onClick={toggleDebugPanel}
+          title="Toggle Debug Panel"
+        >
+          {showDebugPanel ? 'Hide Debug Panel' : 'Show Debug Panel'}
+        </button>
       </footer>
+      
+      {/* Debug Panel */}
+      <DebugPanel isVisible={showDebugPanel} />
     </div>
   );
 }

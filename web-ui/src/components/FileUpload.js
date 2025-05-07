@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { S3Service } from '../services/aws-service';
+import { ApiService } from '../services/aws-service';
 import awsConfig from '../aws-exports';
+import Logger from '../utils/logger';
 
 // Configuration - using bucket name from aws-exports
 const S3_BUCKET_NAME = awsConfig.s3.originalBucket || 'ORIGINAL_FILES_BUCKET_PLACEHOLDER';
@@ -17,55 +18,64 @@ const FileUpload = ({ onFileUploaded, onError }) => {
       if (!file.name.endsWith('.ppt') && !file.name.endsWith('.pptx')) {
         alert('Please select a PowerPoint file (.ppt or .pptx)');
         event.target.value = null;
-        console.log(`[${new Date().toISOString()}] Invalid file type selected: ${file.name}`);
+        Logger.warn(`Invalid file type selected: ${file.name}`);
         return;
       }
       setSelectedFile(file);
-      console.log(`[${new Date().toISOString()}] File selected: ${file.name}, Size: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
+      Logger.info(`File selected: ${file.name}, Size: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
     }
   };
 
   const handleUpload = async () => {
     if (!selectedFile) {
       alert('Please select a file first');
-      console.log(`[${new Date().toISOString()}] Upload attempted without file selection`);
+      Logger.warn(`Upload attempted without file selection`);
       return;
     }
 
     try {
       setUploading(true);
-      console.log(`[${new Date().toISOString()}] Starting upload for file: ${selectedFile.name}`);
+      Logger.info(`Starting upload for file: ${selectedFile.name}`);
       
-      // Generate a unique file name to prevent overwriting
-      const timestamp = new Date().getTime();
-      const uniqueFileName = `${timestamp}-${selectedFile.name}`;
-      
-      // Get presigned URL or POST data
-      const { uploadURL, fileKey } = await S3Service.getPresignedUploadUrl(
-        S3_BUCKET_NAME,
-        uniqueFileName,
+      // Get presigned URL for upload
+      const { uploadUrl, fileKey } = await ApiService.getPresignedUploadUrl(
+        selectedFile.name,
         selectedFile.type
       );
 
       // Simulate upload progress (in a real app you'd use XMLHttpRequest with progress event)
-      for (let i = 0; i <= 90; i += 10) {
-        setUploadProgress(i);
-        await new Promise(resolve => setTimeout(resolve, 200));
-      }
+      const simulateProgress = async () => {
+        for (let i = 0; i <= 90; i += 10) {
+          setUploadProgress(i);
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+      };
       
-      // Upload file using presigned URL or POST data
-      await S3Service.uploadFileWithPresignedUrl(uploadURL, selectedFile);
+      await simulateProgress();
+      
+      // Upload file using presigned URL
+      const response = await fetch(uploadUrl, {
+        method: 'PUT',
+        body: selectedFile,
+        headers: {
+          'Content-Type': selectedFile.type
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Upload failed with status: ${response.status}`);
+      }
       
       setUploadProgress(100);
       
       // Notify parent component that file upload is complete
       onFileUploaded(fileKey, selectedFile.name);
-      console.log(`[${new Date().toISOString()}] Upload completed for file: ${selectedFile.name}, File Key: ${fileKey}`);
+      Logger.info(`Upload completed for file: ${selectedFile.name}, File Key: ${fileKey}`);
       
     } catch (error) {
-      console.error(`[${new Date().toISOString()}] Error uploading file:`, error);
+      Logger.error(`Error uploading file:`, error);
       onError(`File upload failed: ${error.message}`);
-      console.log(`[${new Date().toISOString()}] Upload failed for file: ${selectedFile.name}`);
+      Logger.warn(`Upload failed for file: ${selectedFile.name}`);
     } finally {
       setUploading(false);
     }
@@ -96,7 +106,7 @@ const FileUpload = ({ onFileUploaded, onError }) => {
         </div>
       )}
       
-      {selectedFile && (
+      {selectedFile && !uploading && (
         <div className="file-info">
           <p>Selected file: {selectedFile.name}</p>
           <p>Size: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>

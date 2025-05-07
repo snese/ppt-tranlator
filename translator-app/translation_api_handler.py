@@ -4,14 +4,12 @@ import os
 import logging
 import uuid
 import traceback
+import datetime
 from botocore.exceptions import ClientError
+from debug_utils import setup_logger, log_event, handle_debug_request, handle_health_check
 
 # Set up logging with detailed format
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+logger = setup_logger(__name__)
 
 def lambda_handler(event, context):
     """
@@ -24,9 +22,9 @@ def lambda_handler(event, context):
     Returns:
         dict: Response with status code and appropriate data
     """
-    logger.info("Lambda event received: %s", json.dumps(event))
+    # Log the event with sensitive data redacted
+    log_event(event, context, logger)
     
-    # Common CORS headers for all responses
     # Get origin from request headers for CORS
     origin = '*'
     headers = event.get('headers', {})
@@ -39,7 +37,7 @@ def lambda_handler(event, context):
     
     cors_headers = {
         'Access-Control-Allow-Origin': origin,
-        'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Requested-With',
+        'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Requested-With,X-Request-ID',
         'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
         'Access-Control-Allow-Credentials': 'true',
         'Content-Type': 'application/json'
@@ -61,7 +59,12 @@ def lambda_handler(event, context):
         
         logger.info(f"Processing request: {method} {path}")
         
-        if '/translate' in path and method == 'POST':
+        # Handle debug and health check endpoints
+        if '/debug' in path and method == 'GET':
+            return handle_debug_request(event, cors_headers, logger)
+        elif '/health' in path and method == 'GET':
+            return handle_health_check(event, cors_headers, logger)
+        elif '/translate' in path and method == 'POST':
             return handle_translate_request(event, cors_headers)
         elif '/status' in path and method == 'GET':
             return handle_status_request(event, cors_headers)
@@ -71,31 +74,42 @@ def lambda_handler(event, context):
             return {
                 'statusCode': 400,
                 'headers': cors_headers,
-                'body': json.dumps("Invalid endpoint or method")
+                'body': json.dumps({
+                    'error': f'Unsupported path or method: {method} {path}',
+                    'timestamp': datetime.datetime.now().isoformat()
+                })
             }
     except Exception as e:
-        logger.error(f"Error in lambda_handler: {e}")
-        logger.error(f"Exception traceback: {traceback.format_exc()}")
+        logger.error(f"Unhandled exception: {e}")
+        logger.error(traceback.format_exc())
         return {
             'statusCode': 500,
             'headers': cors_headers,
-            'body': json.dumps(f"Error processing request: {str(e)}")
+            'body': json.dumps({
+                'error': f'Internal server error: {str(e)}',
+                'timestamp': datetime.datetime.now().isoformat()
+            })
         }
 
 def handle_translate_request(event, cors_headers):
-    """Handle POST /translate requests"""
+    """Handle translation requests"""
     try:
-        # Extract parameters from the event
-        body = json.loads(event.get('body', '{}')) if isinstance(event.get('body'), str) else event.get('body', {})
+        # Parse the request body
+        body = json.loads(event.get('body', '{}'))
+        
+        # Extract parameters
         file_key = body.get('fileKey')
         source_language = body.get('sourceLanguage', 'en')
-        target_language = body.get('targetLanguage', 'es')
+        target_language = body.get('targetLanguage', 'zh-TW')
         
+        # Validate required parameters
         if not file_key:
             return {
                 'statusCode': 400,
                 'headers': cors_headers,
-                'body': json.dumps("Missing required parameter: fileKey")
+                'body': json.dumps({
+                    'error': 'Missing required parameter: fileKey'
+                })
             }
         
         # Generate a unique job ID
@@ -157,7 +171,10 @@ def handle_translate_request(event, cors_headers):
                             }
                         }
                     }
-                ]
+                ],
+                'jobId': job_id,
+                'sourceLanguage': source_language,
+                'targetLanguage': target_language
             }
             
             # Log the event we're about to send
@@ -180,7 +197,8 @@ def handle_translate_request(event, cors_headers):
                     'body': json.dumps({
                         'jobId': job_id,
                         'status': 'processing',
-                        'message': f'Translation job {job_id} started for file {file_key}'
+                        'message': f'Translation job {job_id} started for file {file_key}',
+                        'timestamp': datetime.datetime.now().isoformat()
                     })
                 }
             except Exception as e:
@@ -190,75 +208,37 @@ def handle_translate_request(event, cors_headers):
                     'statusCode': 500,
                     'headers': cors_headers,
                     'body': json.dumps({
-                        'error': f'Failed to start translation job: {str(e)}'
-                    })
-                }
-                                logger.info(f"Found matching function: {actual_function_name}")
-                                
-                                response = lambda_client.invoke(
-                                    FunctionName=actual_function_name,
-                                    InvocationType='Event',
-                                    Payload=json.dumps(s3_event)
-                                )
-                                logger.info(f"Successfully triggered translation Lambda with name {actual_function_name}")
-                            else:
-                                raise Exception(f"No matching Lambda functions found for {base_name}")
-                        except Exception as inner_e:
-                            logger.error(f"Error in fallback Lambda invocation: {inner_e}")
-                            raise inner_e
-                    else:
-                        raise e
-                
-                # Return the job ID to the client
-                return {
-                    'statusCode': 200,
-                    'headers': cors_headers,
-                    'body': json.dumps({
-                        'jobId': job_id,
-                        'status': 'processing',
-                        'message': f'Translation job {job_id} started for file {file_key}'
-                    })
-                }
-            except Exception as e:
-                logger.error(f"Error invoking Lambda: {e}")
-                logger.error(f"Exception traceback: {traceback.format_exc()}")
-                return {
-                    'statusCode': 500,
-                    'headers': cors_headers,
-                    'body': json.dumps({
-                        'error': f'Failed to start translation job: {str(e)}'
+                        'error': f'Failed to start translation job: {str(e)}',
+                        'timestamp': datetime.datetime.now().isoformat()
                     })
                 }
         except Exception as e:
-            logger.error(f"Error triggering translation Lambda: {e}")
-            logger.error(f"Exception traceback: {traceback.format_exc()}")
-            # Continue even if there's an error triggering the Lambda
-            # In a production environment, you might want to handle this differently
-        
+            logger.error(f"Error in translation request: {e}")
+            logger.error(traceback.format_exc())
+            return {
+                'statusCode': 500,
+                'headers': cors_headers,
+                'body': json.dumps({
+                    'error': f'Failed to process translation request: {str(e)}',
+                    'timestamp': datetime.datetime.now().isoformat()
+                })
+            }
+    except Exception as e:
+        logger.error(f"Error parsing request: {e}")
+        logger.error(traceback.format_exc())
         return {
-            'statusCode': 200,
+            'statusCode': 400,
             'headers': cors_headers,
             'body': json.dumps({
-                'jobId': job_id,
-                'status': 'SUBMITTED',
-                'fileKey': file_key,
-                'sourceLanguage': source_language,
-                'targetLanguage': target_language
+                'error': f'Invalid request: {str(e)}',
+                'timestamp': datetime.datetime.now().isoformat()
             })
-        }
-    except Exception as e:
-        logger.error(f"Error in handle_translate_request: {e}")
-        logger.error(f"Exception traceback: {traceback.format_exc()}")
-        return {
-            'statusCode': 500,
-            'headers': cors_headers,
-            'body': json.dumps(f"Error initiating translation: {str(e)}")
         }
 
 def handle_status_request(event, cors_headers):
-    """Handle GET /status requests"""
+    """Handle translation status check requests"""
     try:
-        # Extract job ID from query parameters
+        # Get query parameters
         query_params = event.get('queryStringParameters', {}) or {}
         job_id = query_params.get('jobId')
         
@@ -266,17 +246,18 @@ def handle_status_request(event, cors_headers):
             return {
                 'statusCode': 400,
                 'headers': cors_headers,
-                'body': json.dumps("Missing required parameter: jobId")
+                'body': json.dumps({
+                    'error': 'Missing required parameter: jobId',
+                    'timestamp': datetime.datetime.now().isoformat()
+                })
             }
         
         # In a real implementation, you would check the status of the translation job
         # For now, we'll just return a mock status
-        logger.info(f"Checking status for job ID: {job_id}")
+        logger.info(f"Checking status for job: {job_id}")
         
-        # Simulate different statuses based on job ID
-        # In a real implementation, you would check a database or other storage
-        status = "IN_PROGRESS"
-        progress = 0  # Start with 0% progress
+        # Mock status - in a real implementation, this would come from a database or other storage
+        status = 'completed'  # or 'processing', 'failed', etc.
         
         return {
             'statusCode': 200,
@@ -284,22 +265,26 @@ def handle_status_request(event, cors_headers):
             'body': json.dumps({
                 'jobId': job_id,
                 'status': status,
-                'progress': progress
+                'progress': 100,  # percentage
+                'timestamp': datetime.datetime.now().isoformat()
             })
         }
     except Exception as e:
-        logger.error(f"Error in handle_status_request: {e}")
-        logger.error(f"Exception traceback: {traceback.format_exc()}")
+        logger.error(f"Error checking status: {e}")
+        logger.error(traceback.format_exc())
         return {
             'statusCode': 500,
             'headers': cors_headers,
-            'body': json.dumps(f"Error checking translation status: {str(e)}")
+            'body': json.dumps({
+                'error': f'Failed to check translation status: {str(e)}',
+                'timestamp': datetime.datetime.now().isoformat()
+            })
         }
 
 def handle_result_request(event, cors_headers):
-    """Handle GET /result requests"""
+    """Handle translation result requests"""
     try:
-        # Extract job ID from query parameters
+        # Get query parameters
         query_params = event.get('queryStringParameters', {}) or {}
         job_id = query_params.get('jobId')
         
@@ -307,31 +292,37 @@ def handle_result_request(event, cors_headers):
             return {
                 'statusCode': 400,
                 'headers': cors_headers,
-                'body': json.dumps("Missing required parameter: jobId")
+                'body': json.dumps({
+                    'error': 'Missing required parameter: jobId',
+                    'timestamp': datetime.datetime.now().isoformat()
+                })
             }
         
         # In a real implementation, you would retrieve the result of the translation job
         # For now, we'll just return a mock result
-        logger.info(f"Getting result for job ID: {job_id}")
+        logger.info(f"Getting result for job: {job_id}")
         
-        # Simulate a completed translation
-        # In a real implementation, you would retrieve the result from a database or S3
-        translated_file_key = f"translated-{job_id}.pptx"
+        # Mock result - in a real implementation, this would come from a database or S3
+        translated_file_key = f"translated_{job_id}.pptx"
         
         return {
             'statusCode': 200,
             'headers': cors_headers,
             'body': json.dumps({
                 'jobId': job_id,
-                'status': 'COMPLETED',
-                'translatedFileKey': translated_file_key
+                'status': 'completed',
+                'fileKey': translated_file_key,
+                'timestamp': datetime.datetime.now().isoformat()
             })
         }
     except Exception as e:
-        logger.error(f"Error in handle_result_request: {e}")
-        logger.error(f"Exception traceback: {traceback.format_exc()}")
+        logger.error(f"Error getting result: {e}")
+        logger.error(traceback.format_exc())
         return {
             'statusCode': 500,
             'headers': cors_headers,
-            'body': json.dumps(f"Error getting translation result: {str(e)}")
+            'body': json.dumps({
+                'error': f'Failed to get translation result: {str(e)}',
+                'timestamp': datetime.datetime.now().isoformat()
+            })
         }

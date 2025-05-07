@@ -1,0 +1,134 @@
+.debug-panel {
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 15px;
+  margin: 20px 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.debug-panel h2 {
+  margin-top: 0;
+  color: #333;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
+}
+
+.debug-tabs {
+  display: flex;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #ddd;
+}
+
+.debug-tabs button {
+  background: none;
+  border: none;
+  padding: 8px 15px;
+  cursor: pointer;
+  font-size: 14px;
+  border-bottom: 2px solid transparent;
+}
+
+.debug-tabs button.active {
+  border-bottom: 2px solid #0066cc;
+  font-weight: bold;
+}
+
+.debug-tabs button:hover {
+  background-color: #eee;
+}
+
+.debug-actions {
+  margin-bottom: 15px;
+  display: flex;
+  gap: 10px;
+}
+
+.debug-actions button {
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.debug-actions button:hover {
+  background-color: #e0e0e0;
+}
+
+.debug-actions button.active {
+  background-color: #0066cc;
+  color: white;
+}
+
+.debug-section {
+  margin-bottom: 20px;
+}
+
+.debug-section h3 {
+  margin-top: 0;
+  color: #555;
+}
+
+.debug-section pre {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px;
+  overflow: auto;
+  max-height: 300px;
+  font-size: 12px;
+}
+
+.error-message {
+  color: #d32f2f;
+  background-color: #ffebee;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  border-left: 4px solid #d32f2f;
+}
+
+.health-status {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.health-status.healthy {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.health-status.unhealthy {
+  background-color: #ffebee;
+  color: #d32f2f;
+}
+
+.log-controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.debug-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+@media (max-width: 600px) {
+  .debug-tabs {
+    flex-direction: column;
+  }
+  
+  .debug-actions {
+    flex-direction: column;
+  }
+  
+  .debug-actions-grid {
+    grid-template-columns: 1fr;
+  }
+}

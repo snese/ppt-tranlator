@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { S3Service } from '../services/aws-service';
+import { ApiService } from '../services/aws-service';
 import awsConfig from '../aws-exports';
+import Logger from '../utils/logger';
 
 // Configuration - using bucket name from aws-exports
 const S3_BUCKET_NAME = awsConfig.s3.translatedBucket || 'TRANSLATED_FILES_BUCKET_PLACEHOLDER';
@@ -21,53 +22,44 @@ const DownloadButton = ({ fileKey, originalFilename }) => {
   const handleDownload = async () => {
     if (!fileKey) {
       setError('No file available for download');
-      console.log(`[${new Date().toISOString()}] Download attempted without file key`);
+      Logger.warn(`Download attempted without file key`);
       return;
     }
 
     try {
       setIsGeneratingLink(true);
-      setError(null);
-      console.log(`[${new Date().toISOString()}] Starting download process for file key: ${fileKey}`);
+      Logger.info(`Generating download link for file: ${fileKey}`);
       
-      // Get presigned download URL
-      const downloadURL = await S3Service.getPresignedDownloadUrl(
-        S3_BUCKET_NAME,
-        fileKey
-      );
+      // Get presigned URL for download
+      const downloadUrl = await ApiService.getPresignedDownloadUrl(fileKey);
       
-      // Open the URL in a new tab or initiate download
-      // For most browsers, this will start a download
-      window.open(downloadURL, '_blank');
-      console.log(`[${new Date().toISOString()}] Download URL opened for file key: ${fileKey}`);
+      // Create a temporary link element and trigger download
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = getDisplayFilename();
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
       
-    } catch (err) {
-      console.error(`[${new Date().toISOString()}] Failed to generate download link:`, err);
-      setError('Failed to generate download link');
-      console.log(`[${new Date().toISOString()}] Download failed for file key: ${fileKey}`);
+      Logger.info(`Download initiated for file: ${fileKey}`);
+    } catch (error) {
+      setError(`Failed to generate download link: ${error.message}`);
+      Logger.error(`Error generating download link:`, error);
     } finally {
       setIsGeneratingLink(false);
     }
   };
 
   return (
-    <div className="download-button-container">
+    <div className="download-container">
       <button 
         className="download-button"
         onClick={handleDownload}
         disabled={isGeneratingLink || !fileKey}
       >
-        {isGeneratingLink 
-          ? 'Generating download link...' 
-          : `Download ${getDisplayFilename()}`
-        }
+        {isGeneratingLink ? 'Generating Download Link...' : 'Download Translated File'}
       </button>
-      
-      {error && (
-        <div className="error-message">
-          <p>{error}</p>
-        </div>
-      )}
+      {error && <p className="error-message">{error}</p>}
     </div>
   );
 };
